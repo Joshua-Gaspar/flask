@@ -1,0 +1,22 @@
+html{
+    box-sizing: border-box;
+
+}
+
+body{
+    margin: 0;
+    font-family: 'Bebas Neue', cursive ,sans-serif;
+    background: whitesmoke;
+}
+
+img{
+    max-width: 30%;
+}
+
+.center{
+    text-align: center;
+    margin-top: 25px;
+    margin-top: 15px;
+    font-size: 20px;
+    letter-spacing: 5px;
+}
