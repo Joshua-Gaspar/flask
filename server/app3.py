@@ -5,38 +5,46 @@ import time
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#Path directory for images
+UPLOAD_FOLDER = './static/uploads/'
 
-#Get IP address of client
-@app.route("/getIp")
+#Get home page HTML and show it in the browser 
+@app.route('/',methods=['GET'])
+def home():
+  #returns a list containing the names of the entries in the directory given by path
+  imageListName = os.listdir(UPLOAD_FOLDER)
+  print(imageListName)
+  
+  #Array containing directory of every single images
+  imagelist = ['uploads/' + image for image in imageListName]
+
+  myResponse = make_response(render_template("index3.html", imageList=imagelist))
+  myResponse.status_code = 200
+  myResponse.headers['customHeader'] = 'This is a custom header'
+  myResponse.mimetype = 'text/html'
+  
+  return myResponse
+
+#Get IP address and PORT of client
+@app.route("/getIp", methods=['GET'])
 def get_my_ip():
+    
+    #simple delay to test multi-threading
     time.sleep(5)
 
-    myResponse = make_response({'ip': request.remote_addr})
-    myResponse.headers['Access-Control-Allow-Origin'] = '*'
+    myResponse = make_response({'ip': request.environ['REMOTE_ADDR'],
+                                'port':request.environ.get('REMOTE_PORT')})
     myResponse.headers['customHeader'] = 'This is a custom header'
     myResponse.status_code = 200
     myResponse.mimetype = 'text/plain'
 
     return myResponse
-    # return jsonify({'ip': request.remote_addr}), 200
 
-#Get home page HTML
-@app.route('/')
-def home():
-    myResponse = make_response(render_template('index3.html'))
-    myResponse.headers['customHeader'] = 'This is a custom header'
-    myResponse.status_code = 200
-    myResponse.mimetype = 'text/html'
-
-    return myResponse
-
-
+#Upload the image then save it to a to a folder
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    #simple delay to test multi-threading
-    time.sleep(10)
+
+    
     file = request.files['file']
 
     if file.filename == '':
@@ -53,7 +61,7 @@ def upload_file():
        filename = secure_filename(file.filename)
 
        #save file in a particular directory
-       file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+       file.save(os.path.join(UPLOAD_FOLDER, filename))
 
        myResponse = make_response({'message': 'Files successfully uploaded'})
        myResponse.headers['customHeader'] = 'This is a custom header'
@@ -61,13 +69,23 @@ def upload_file():
 
        return myResponse
 
-#Search a image and display it
-@app.route('/<filename>')
+#Search the requested image and display it on the browser
+@app.route('/<filename>', methods=['GET'])
 def display_image(filename):
-    check = os.path.exists(UPLOAD_FOLDER + '/'+ filename)
     
+    #check whether the requestes file exist in the server
+    check = os.path.exists(UPLOAD_FOLDER + filename)
+    
+    #If the file exist in the server, redirect the client to the image location
     if check:
-        return redirect(url_for('static', filename='uploads/' + filename), code=302)
+        myResponse = redirect(url_for('static', filename='uploads/' + filename))
+        myResponse.headers['customHeader'] = 'This is a custom header'
+        myResponse.status_code = 302
+        myResponse.mimetype = 'image/jpeg'
+        
+        return myResponse
+    
+    #Return a 404 response if the file doesnt exist 
     else:
         myResponse = make_response({'message': '404 Page Not Found'})
         myResponse.headers['customHeader'] = 'This is a custom header'
@@ -77,14 +95,10 @@ def display_image(filename):
         return myResponse
 
 
-@app.route('/allImages')
-def get_all_image():
-  imageList = os.listdir(UPLOAD_FOLDER)
-  imagelist = ['uploads/' + image for image in imageList]
-
-  return render_template("index3.html", imagelist=imagelist)
 
 
 if __name__ == "__main__":
-    # This work externally on the same network
-    app.run(host='0.0.0.0', port=5000, Thread = True)
+    # When the host is set to 0.0.0.0 it tell the flask framework to use the machine private ip address (to be able to use it externally and the port is set to 5000)
+    
+    #Additionally the framework is multithread by default and use the TCP connection
+    app.run(host='0.0.0.0', port=5000)

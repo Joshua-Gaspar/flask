@@ -21,7 +21,7 @@
             <input type="submit" value="Submit" class="btn btn-info">
         </p>
     </form>
-    {% for imagelist in imagelist %}
+    {% for imagelist in imageList %}
     <img src = "{{ url_for('static', filename=imagelist)}}">
     {% endfor %}
 </div>
