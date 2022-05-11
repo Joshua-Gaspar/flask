@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 import time
 
+# Initialize the Flask application
 app = Flask(__name__)
 
 #Path directory for images
@@ -45,7 +46,7 @@ def get_my_ip():
 def upload_file():
 
     
-    file = request.files['file']
+    file = request.files['file-img']
 
     if file.filename == '':
         myResponse = make_response({'message': 'There is no file'})
@@ -98,6 +99,8 @@ def display_image(filename):
 
 
 if __name__ == "__main__":
+    # start flask app
+    
     # When the host is set to 0.0.0.0 it tell the flask framework to use the machine private ip address (to be able to use it externally and the port is set to 5000)
     
     #Additionally the framework is multithread by default and use the TCP connection
